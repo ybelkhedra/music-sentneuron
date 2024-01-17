@@ -83,7 +83,7 @@ python3 midi_generator.py --model trained --ch2ix trained/char2idx.json --embed 
 The following script will encode the labelled pieces with the final cell states of the generative LSTM and train the logistic regression model:
 
 ```
-python3 train_classifier.py --model trained --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --train ./vgmidi/labelled/vgmidi_sent_train.csv --test ./vgmidi/labelled/vgmidi_sent_test.csv --cellix 4
+python3 train_classifier.py --model trained --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --train ./vgmidi/labelled/vgmidi_sent_train.csv --test ./vgmidi/labelled/vgmidi_sent_test.csv --cellix 3
 ```
 
 After running this script, a binary file named "classifier_ckpt.p" containing the trained classifier logistic regression is saved in the "trained/" folder.
@@ -96,7 +96,7 @@ training the logistic regression classifier.
 #### 2.1 Evolve neurons to generate positive pieces
 
 ```
-evolve_generative.py --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 4 --elitism 0.1 --epochs 10 --sent 1
+evolve_generative.py --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 3 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 3 --elitism 0.1 --epochs 10 --sent 1
 ```
 
 After running this script, a json file named "neurons_positive.json" containing the neuron values that control the generative model to be positive is saved in the "trained/" folder.
@@ -112,13 +112,13 @@ After running this script, a json file named "neurons_negative.json" containing 
 #### 2.3 Generate positive pieces
 
 ```
-python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_positive.json --cellix 4
+python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_positive.json --cellix 3
 ```
 
 #### 2.4 Generate negative pieces
 
 ```
-python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_negative.json --cellix 4
+python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_negative.json --cellix 3
 ```
 
 ## Citing this Work
