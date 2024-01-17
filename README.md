@@ -45,8 +45,8 @@ To make sur the paths will match in the rest of this tutorial. Rename the datase
 To process the MIDI data with neural networks, one needs to encode the MIDI data as a sequence of vectors. To augment encode the In this work, we use a one-hot encoding strategy:
 
 ```
-python3.7 midi_encoder.py --path vgmidi/unlabelled/train --transp 10 --strech 10
-python3.7 midi_encoder.py --path vgmidi/unlabelled/test --transp 10 --strech 10
+python3 midi_encoder.py --path vgmidi/unlabelled/train --transp 10 --strech 10
+python3 midi_encoder.py --path vgmidi/unlabelled/test --transp 10 --strech 10
 ```
 
 Note that this will create a .txt file for each .mid file in the `train` and `test` directories. Each line in these files represents an encoded augmented version of the original mid piece. For example, in the `train` directory there should be a `Dragon_Warrior_Battle_Theme.txt` file that starts with:
@@ -69,13 +69,13 @@ To train a sentiment classifier of symbolic music:
 #### 1.1 Train a generative LSTM on unlabelled pieces:
 
 ```
-python3.7 train_generative.py --train ../vgmidi/unlabelled/train/ --test ../vgmidi/unlabelled/test/ --embed 256 --units 512 --layers 4 --batch 64 --epochs 15 --lrate 0.00001 --seqlen 256 --drop 0.05
+python3 train_generative.py --train ./vgmidi/unlabelled/train/ --test ./vgmidi/unlabelled/test/ --embed 128 --units 256 --layers 3 --batch 32 --epochs 10 --lrate 0.0001 --seqlen 128 --drop 0.05
 ```
 This script saves a checkpoint of the trained model after every epoch in the "trained/" folder. Note that the model/training parameters are slightly different than the ones presented in the paper. These parameters should achieve similar results and are faster to train. Feel free to adjust the pameters to the original ones (`--embed 64, --units 4096 --batch 32 --epochs 4 --lrate 0.000001`). 
 
 To sample from this trained generative model (without sentiment control):
 ```
-python3.7 midi_generator.py --model trained --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4
+python3 midi_generator.py --model trained --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3
 ```
 
 #### 1.2 Train a Logistic Regression to classify sentiment in symbolic music:
@@ -83,7 +83,7 @@ python3.7 midi_generator.py --model trained --ch2ix trained/char2idx.json --embe
 The following script will encode the labelled pieces with the final cell states of the generative LSTM and train the logistic regression model:
 
 ```
-python3.7 train_classifier.py --model trained --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --train ../vgmidi/labelled/vgmidi_sent_train.csv --test ../vgmidi/labelled/vgmidi_sent_test.csv --cellix 4
+python3 train_classifier.py --model trained --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --train ./vgmidi/labelled/vgmidi_sent_train.csv --test ./vgmidi/labelled/vgmidi_sent_test.csv --cellix 4
 ```
 
 After running this script, a binary file named "classifier_ckpt.p" containing the trained classifier logistic regression is saved in the "trained/" folder.
@@ -104,7 +104,7 @@ After running this script, a json file named "neurons_positive.json" containing 
 #### 2.2 Evolve neurons to generate negative pieces
 
 ```
-python3.7 midi_generator.py --model trained --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --cellix
+python3 midi_generator.py --model trained --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --cellix
 ```
 
 After running this script, a json file named "neurons_negative.json" containing the neuron values that control the generative model to be netagive is saved in the "trained/" folder.
