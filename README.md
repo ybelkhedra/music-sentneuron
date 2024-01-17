@@ -1,3 +1,53 @@
+# Rendu TP IA appliquée à la musique - Yamine Belkhedra & Félicien Fichet
+
+Ce code a été obtenu à partir du github suivant : https://github.com/lucasnfe/music-sentneuron et qui implémente la méthode de génération de musiques du papier de recherche suivant : http://www.lucasnferreira.com/papers/2019/ismir-learning.pdf
+
+Quelques modifications ont été fait pour rendre le code compatible avec les dernières versions de tensorflow et de numpy.
+
+Voici les différentes commandes utiles pour pouvoir entraîner le modèle : 
+
+Obtention du dataset, pensez à renommer le dossier "vgmidi" :
+```bash
+wget https://github.com/lucasnfe/vgmidi/archive/0.1.zip
+```
+
+Préparation des données dans le bon format :
+```bash
+python3 midi_encoder.py --path vgmidi/unlabelled/train --transp 10 --strech 10
+python3 midi_encoder.py --path vgmidi/unlabelled/test --transp 10 --strech 10
+```
+
+
+Entraîner le générateur de musique : 
+```bash
+python3 train_generative.py --train ./vgmidi/unlabelled/train/ --test ./vgmidi/unlabelled/test/ --embed 128 --units 256 --layers 3 --batch 32 --epochs 10 --lrate 0.0001 --seqlen 128 --drop 0.05
+```
+
+Entraîner le classifieur : 
+```bash
+python3 train_classifier.py --model trained --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --train ./vgmidi/labelled/vgmidi_sent_train.csv --test ./vgmidi/labelled/vgmidi_sent_test.csv --cellix 3
+```
+
+
+Modifier le générateur pour le rendre compatible avec la génération de musique avec sentiment :
+```bash
+python3 evolve_generative.py --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 4 --elitism 0.1 --epochs 10 --sent 1
+python3 evolve_generative.py --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 4 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 4 --elitism 0.1 --epochs 10 --sent 0
+```
+
+Générer une musique positive : 
+```bash
+python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_positive.json --cellix 3
+```
+
+Générer une musique négative :
+```bash
+python3 midi_generator.py --model trained/ --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --seqlen 256 --override trained/neurons_negative.json --cellix 3
+```
+
+/!\ Pour faciliter l'entraînent, ne pas hésiter à modifier les hyper-paramètres. Les résultats seront beaucoup moins bon mais avec des durées d'entraînement plus raisonnable. Il est possible de réduire la taille du dataset non labellé également.
+
+
 # Learning to Generate Music with Sentiment
 
 This repository contains the source code to reproduce the results of the [ISMIR'19](https://ismir2019.ewi.tudelft.nl/)
@@ -96,7 +146,7 @@ training the logistic regression classifier.
 #### 2.1 Evolve neurons to generate positive pieces
 
 ```
-evolve_generative.py --ch2ix trained/char2idx.json --embed 256 --units 512 --layers 3 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 3 --elitism 0.1 --epochs 10 --sent 1
+evolve_generative.py --ch2ix trained/char2idx.json --embed 128 --units 256 --layers 3 --genmodel trained/ --clsmodel trained/classifier_ckpt.p --cellix 3 --elitism 0.1 --epochs 5 --sent 1
 ```
 
 After running this script, a json file named "neurons_positive.json" containing the neuron values that control the generative model to be positive is saved in the "trained/" folder.
